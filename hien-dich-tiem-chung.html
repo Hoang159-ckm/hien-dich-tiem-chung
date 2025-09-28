@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiến Dịch Truyền Thông Tiêm Chủng - Lá Chắn Yêu Thương</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Trust Palette -->
+    <!-- Application Structure Plan: Cấu trúc ứng dụng được thiết kế theo một luồng tường thuật logic, không theo cấu trúc chương mục của đề cương, nhằm tối ưu hóa trải nghiệm người dùng. Bắt đầu với phần giới thiệu tác động mạnh ("Hero Section") để nêu bật vấn đề. Tiếp theo là một "Dashboard" tương tác trực quan hóa bối cảnh tiêm chủng tại Việt Nam với các số liệu và thành tựu chính. Sau đó, ứng dụng đi sâu vào "Tại sao phải hành động" bằng cách giải thích các thách thức như tin giả và khái niệm miễn dịch cộng đồng. Trọng tâm của ứng dụng là phần trình bày chi tiết về chiến dịch "Lá Chắn Yêu Thương" với các giai đoạn và hoạt động cụ thể thông qua giao diện tab trực quan. Cuối cùng là phần phân tích các nhóm công chúng và đưa ra các giải pháp, kêu gọi hành động. Cấu trúc này giúp người dùng từ từ nắm bắt vấn đề, hiểu giải pháp và được khuyến khích tham gia. -->
+    <!-- Visualization & Content Choices: Mỗi phần thông tin trong đề cương được chuyển thể thành dạng tương tác phù hợp nhất. Thành tựu của Chương trình Tiêm chủng Mở rộng được thể hiện qua các bộ đếm số và dòng thời gian tương tác (HTML/JS) để tạo sự tin cậy. Khái niệm "Miễn dịch cộng đồng" phức tạp được minh họa bằng một hoạt ảnh đơn giản trên Canvas để dễ hiểu. Các nhóm đối tượng công chúng được trực quan hóa bằng biểu đồ cột của Chart.js và các thẻ thông tin có thể nhấp vào. Kế hoạch chiến dịch chi tiết được sắp xếp gọn gàng trong các tab (HTML/JS) để tránh quá tải thông tin. Thử thách về tin giả được trình bày qua các thẻ lật "Sự thật & Tin đồn" (HTML/JS). Tất cả các lựa chọn này đều nhằm mục đích tăng cường sự tương tác và hiểu biết của người dùng, tuân thủ nghiêm ngặt yêu cầu không sử dụng SVG và Mermaid JS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #FDFBF8;
+            color: #3D405B;
+        }
+        .text-balance { text-wrap: balance; }
+        .bg-primary { background-color: #0077B6; }
+        .text-primary { color: #0077B6; }
+        .bg-secondary { background-color: #E7ECEF; }
+        .text-accent { color: #E57373; }
+        .bg-accent { background-color: #E57373; }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-8px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .nav-link { position: relative; padding-bottom: 4px; transition: color 0.3s; }
+        .nav-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background-color: #E57373; transition: width 0.3s; }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+        .chart-container { position: relative; width: 100%; max-width: 500px; margin-left: auto; margin-right: auto; height: 300px; max-height: 350px; }
+    </style>
+</head>
+<body class="antialiased">
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg shadow-sm">
+        <div class="container mx-auto px-4">
+            <nav class="flex justify-between items-center py-4">
+                <div class="text-xl font-bold text-primary">Lá Chắn Yêu Thương</div>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#overview" class="nav-link active">Tổng Quan</a>
+                    <a href="#challenge" class="nav-link">Thách Thức</a>
+                    <a href="#campaign" class="nav-link">Chiến Dịch</a>
+                    <a href="#audience" class="nav-link">Công Chúng</a>
+                    <a href="#solutions" class="nav-link">Giải Pháp</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="menu-btn" class="text-gray-700 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </nav>
+            <div id="mobile-menu" class="hidden md:hidden pb-4">
+                <a href="#overview" class="block py-2 px-4 text-sm hover:bg-gray-100 rounded">Tổng Quan</a>
+                <a href="#challenge" class="block py-2 px-4 text-sm hover:bg-gray-100 rounded">Thách Thức</a>
+                <a href="#campaign" class="block py-2 px-4 text-sm hover:bg-gray-100 rounded">Chiến Dịch</a>
+                <a href="#audience" class="block py-2 px-4 text-sm hover:bg-gray-100 rounded">Công Chúng</a>
+                <a href="#solutions" class="block py-2 px-4 text-sm hover:bg-gray-100 rounded">Giải Pháp</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 md:py-12">
+        <section id="hero" class="text-center py-16">
+            <h1 class="text-4xl md:text-6xl font-bold text-primary mb-4 text-balance">Vắc-xin: Lá Chắn Yêu Thương</h1>
+            <p class="text-lg md:text-xl text-gray-600 max-w-3xl mx-auto text-balance">Trong kỷ nguyên số, thành tựu y học vĩ đại nhất lại đối mặt với thách thức lớn nhất: sự hoài nghi. Đây là kế hoạch củng cố niềm tin và bảo vệ tương lai sức khỏe của Việt Nam.</p>
+        </section>
+
+        <section id="overview" class="py-12">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Bối Cảnh Tiêm Chủng Tại Việt Nam</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Việt Nam đã đạt được những thành tựu đáng kể trong công tác tiêm chủng, nhưng những "khoảng trống miễn dịch" và thách thức mới đang dần xuất hiện, đòi hỏi chúng ta phải hành động.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center mb-12">
+                <div class="bg-white p-6 rounded-lg shadow-md card-hover">
+                    <div class="text-4xl font-bold text-primary" id="coverage-rate">0</div>
+                    <p class="text-gray-500 mt-2">Tỷ lệ tiêm chủng cơ bản duy trì trên 90%</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md card-hover">
+                    <div class="text-4xl font-bold text-primary" id="polio-year">0</div>
+                    <p class="text-gray-500 mt-2">Năm thanh toán bệnh Bại liệt</p>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md card-hover">
+                    <div class="text-4xl font-bold text-primary" id="tetanus-year">0</div>
+                    <p class="text-gray-500 mt-2">Năm loại trừ Uốn ván sơ sinh</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="font-bold text-xl mb-4 text-center">Dấu Ấn Lịch Sử Của Chương Trình Tiêm Chủng Mở Rộng</h3>
+                <div class="relative">
+                    <div class="border-l-2 border-primary absolute h-full top-0" style="left: 1rem;"></div>
+                    <div class="space-y-8">
+                        <div class="relative pl-12">
+                            <div class="absolute w-4 h-4 bg-primary rounded-full mt-1.5" style="left: 0.6rem;"></div>
+                            <p class="font-semibold">1985</p>
+                            <p class="text-gray-600">Chương trình Tiêm chủng Mở rộng (TCMR) chính thức được triển khai trên toàn quốc.</p>
+                        </div>
+                        <div class="relative pl-12">
+                            <div class="absolute w-4 h-4 bg-primary rounded-full mt-1.5" style="left: 0.6rem;"></div>
+                            <p class="font-semibold">2000</p>
+                            <p class="text-gray-600">Việt Nam được WHO công nhận đã thanh toán thành công bệnh Bại liệt.</p>
+                        </div>
+                        <div class="relative pl-12">
+                            <div class="absolute w-4 h-4 bg-primary rounded-full mt-1.5" style="left: 0.6rem;"></div>
+                            <p class="font-semibold">2005</p>
+                            <p class="text-gray-600">Loại trừ bệnh Uốn ván sơ sinh trên quy mô toàn quốc.</p>
+                        </div>
+                         <div class="relative pl-12">
+                            <div class="absolute w-4 h-4 bg-primary rounded-full mt-1.5" style="left: 0.6rem;"></div>
+                            <p class="font-semibold">Hiện tại</p>
+                            <p class="text-gray-600">Đối mặt với thách thức từ sự do dự tiêm chủng và thông tin sai lệch, cần những chiến lược mới.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="challenge" class="py-12 bg-secondary rounded-lg">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Thách Thức Của Kỷ Nguyên Số</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Thông tin sai lệch lan truyền nhanh hơn cả virus, gieo rắc sự hoài nghi và đe dọa thành quả miễn dịch cộng đồng mà chúng ta đã vất vả xây dựng.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="font-bold text-xl mb-4">Sự Thật & Tin Đồn</h3>
+                    <div class="space-y-4">
+                        <div class="border border-red-200 bg-red-50 p-4 rounded-md">
+                            <p class="font-semibold text-red-700">❌ TIN ĐỒN:</p>
+                            <p class="text-gray-700">Vắc-xin MMR (Sởi - Quai bị - Rubella) gây ra bệnh tự kỷ.</p>
+                        </div>
+                        <div class="border border-green-200 bg-green-50 p-4 rounded-md">
+                            <p class="font-semibold text-green-700">✅ SỰ THẬT:</p>
+                            <p class="text-gray-700">Nghiên cứu của Andrew Wakefield đã bị bác bỏ hoàn toàn vì gian lận. Hàng trăm nghiên cứu lớn sau đó đã khẳng định KHÔNG có mối liên hệ nào giữa vắc-xin MMR và bệnh tự kỷ.</p>
+                        </div>
+                         <div class="border border-red-200 bg-red-50 p-4 rounded-md">
+                            <p class="font-semibold text-red-700">❌ TIN ĐỒN:</p>
+                            <p class="text-gray-700">"Miễn dịch tự nhiên" sau khi mắc bệnh tốt hơn miễn dịch từ vắc-xin.</p>
+                        </div>
+                        <div class="border border-green-200 bg-green-50 p-4 rounded-md">
+                            <p class="font-semibold text-green-700">✅ SỰ THẬT:</p>
+                            <p class="text-gray-700">Mắc bệnh có thể để lại các biến chứng nguy hiểm, thậm chí tử vong. Vắc-xin tạo miễn dịch mà không cần phải trải qua những rủi ro đó.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <h3 class="font-bold text-xl mb-4 text-center">Tầm Quan Trọng Của Miễn Dịch Cộng Đồng</h3>
+                    <p class="text-gray-600 mb-4 text-center">Khi đủ người được tiêm chủng, virus không còn nơi để lây lan, giúp bảo vệ cả những người yếu thế không thể tiêm. Đó là trách nhiệm xã hội của mỗi chúng ta.</p>
+                    <div class="w-full h-64 mx-auto bg-gray-50 rounded border flex items-center justify-center">
+                        <canvas id="herdImmunityCanvas"></canvas>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button id="run-simulation-btn" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-opacity-90 transition">Chạy Mô Phỏng</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section id="campaign" class="py-12">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Chiến Dịch "Vắc-xin: Lá Chắn Yêu Thương"</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Một chiến dịch truyền thông tích hợp, đa kênh được đề xuất để tái xây dựng niềm tin và biến nhận thức thành hành động tiêm chủng đầy đủ, đúng lịch.</p>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="mb-6 p-4 border-l-4 border-primary bg-blue-50 rounded-r-lg">
+                    <p class="font-bold">Thông điệp chủ đạo:</p>
+                    <p class="text-gray-700">Nhấn mạnh tiêm chủng là hành động thể hiện tình yêu và trách nhiệm, bảo vệ tương lai con trẻ và sức khỏe của cả cộng đồng.</p>
+                </div>
+                
+                <div class="flex border-b border-gray-200">
+                    <button data-tab="phase1" class="tab-btn flex-1 py-3 px-2 text-center font-semibold text-primary border-b-2 border-primary">Giai đoạn 1: Đánh thức</button>
+                    <button data-tab="phase2" class="tab-btn flex-1 py-3 px-2 text-center font-semibold text-gray-500">Giai đoạn 2: Thuyết phục</button>
+                    <button data-tab="phase3" class="tab-btn flex-1 py-3 px-2 text-center font-semibold text-gray-500">Giai đoạn 3: Hành động</button>
+                </div>
+
+                <div class="bg-white p-6 rounded-b-lg shadow-md">
+                    <div id="phase1" class="tab-content">
+                        <h4 class="font-bold text-lg mb-2">Giai đoạn 1: Gây chú ý & Khởi động (2 tháng)</h4>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li>Tổ chức họp báo công bố chiến dịch để tạo tiếng vang ban đầu.</li>
+                            <li>Sản xuất và lan tỏa phim ngắn xã hội với câu chuyện cảm động, tác động vào cảm xúc.</li>
+                            <li>Hợp tác với các bác sĩ uy tín và người nổi tiếng có con nhỏ để lan tỏa thông điệp.</li>
+                            <li>Triển khai chuỗi nội dung "Fact-check" trên mạng xã hội để bóc trần các tin đồn sai lệch.</li>
+                        </ul>
+                    </div>
+                    <div id="phase2" class="tab-content hidden">
+                        <h4 class="font-bold text-lg mb-2">Giai đoạn 2: Giáo dục & Thuyết phục (6 tháng)</h4>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li>Tổ chức talkshow trên truyền hình với các chuyên gia hàng đầu.</li>
+                            <li>Xây dựng website/microsite "Lá Chắn Yêu Thương" làm cổng thông tin chính thức, có công cụ tra cứu lịch tiêm và hỏi đáp trực tuyến.</li>
+                            <li>Sản xuất infographic, sổ tay tiêm chủng đẹp mắt, dễ hiểu, phát tại các cơ sở y tế.</li>
+                            <li>Tổ chức các buổi nói chuyện chuyên đề tại cộng đồng, khu dân cư, công ty.</li>
+                        </ul>
+                    </div>
+                    <div id="phase3" class="tab-content hidden">
+                        <h4 class="font-bold text-lg mb-2">Giai đoạn 3: Kêu gọi hành động & Duy trì (Liên tục)</h4>
+                        <ul class="list-disc list-inside space-y-2 text-gray-700">
+                            <li>Triển khai hệ thống SMS/Zalo tự động nhắc lịch tiêm cho các bậc cha mẹ.</li>
+                            <li>Tổ chức cuộc thi ảnh/video "Khoảnh khắc Lá chắn Yêu thương" để tạo nội dung do người dùng tạo ra.</li>
+                            <li>Tôn vinh các "Gia đình Tiêm chủng Kiểu mẫu" tại địa phương để lan tỏa gương tốt.</li>
+                            <li>Duy trì cung cấp thông tin hữu ích và cập nhật thường xuyên trên các kênh truyền thông.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="audience" class="py-12 bg-secondary rounded-lg">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Thấu Hiểu Các Nhóm Công Chúng</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Để truyền thông hiệu quả, chúng ta cần phân loại và có chiến lược tiếp cận phù hợp cho từng nhóm đối tượng với những mối quan tâm khác nhau.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="chart-container">
+                    <canvas id="audienceChart"></canvas>
+                </div>
+                <div class="space-y-4" id="audience-details">
+                    <div data-group="supporter" class="audience-card bg-white p-4 rounded-lg shadow-md border-l-4 border-blue-500 cursor-pointer card-hover">
+                        <h4 class="font-bold text-lg">Nhóm 1: Ủng hộ & Tuân thủ (~80%)</h4>
+                        <p class="text-gray-600 text-sm">Cần củng cố niềm tin và biến họ thành những "đại sứ" lan tỏa thông điệp tích cực.</p>
+                    </div>
+                     <div data-group="hesitant" class="audience-card bg-white p-4 rounded-lg shadow-md border-l-4 border-yellow-500 cursor-pointer card-hover">
+                        <h4 class="font-bold text-lg">Nhóm 2: Do dự & Hoài nghi (~15%)</h4>
+                        <p class="text-gray-600 text-sm">Đối tượng quan trọng nhất. Cần cung cấp thông tin minh bạch, đối thoại và giải đáp thắc mắc một cách kiên nhẫn.</p>
+                    </div>
+                    <div data-group="refuser" class="audience-card bg-white p-4 rounded-lg shadow-md border-l-4 border-red-500 cursor-pointer card-hover">
+                        <h4 class="font-bold text-lg">Nhóm 3: Từ chối & Chống đối (~5%)</h4>
+                        <p class="text-gray-600 text-sm">Cần chiến lược "bóc trần" thông tin sai lệch họ lan truyền, hạn chế đối đầu trực tiếp.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="solutions" class="py-12">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-2">Giải Pháp & Kiến Nghị Đồng Bộ</h2>
+                <p class="text-gray-600 max-w-2xl mx-auto">Để chiến dịch thành công, cần có sự chung tay hành động từ nhiều phía, từ cơ quan quản lý đến mỗi người dân trong cộng đồng.</p>
+            </div>
+            <div class="max-w-3xl mx-auto space-y-4">
+                <div class="solution-item bg-white rounded-lg shadow-sm overflow-hidden">
+                    <button class="accordion-btn w-full text-left p-4 font-semibold flex justify-between items-center bg-gray-50 hover:bg-gray-100">
+                        <span>Đối với Cơ quan Quản lý Nhà nước</span>
+                        <span class="accordion-icon text-primary text-xl font-bold">+</span>
+                    </button>
+                    <div class="accordion-content hidden p-4 border-t border-gray-200 text-gray-700">
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Xây dựng cơ chế phản ứng nhanh với khủng hoảng truyền thông liên quan đến vắc-xin.</li>
+                            <li>Có chính sách quản lý thông tin y tế trên không gian mạng, xử lý tin giả.</li>
+                            <li>Tăng cường đầu tư ngân sách cho truyền thông y tế dự phòng.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="solution-item bg-white rounded-lg shadow-sm overflow-hidden">
+                    <button class="accordion-btn w-full text-left p-4 font-semibold flex justify-between items-center bg-gray-50 hover:bg-gray-100">
+                        <span>Đối với Cơ sở Y tế</span>
+                        <span class="accordion-icon text-primary text-xl font-bold">+</span>
+                    </button>
+                    <div class="accordion-content hidden p-4 border-t border-gray-200 text-gray-700">
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Nâng cao kỹ năng tư vấn, giao tiếp cho cán bộ y tế để họ trở thành người truyền thông tin cậy.</li>
+                            <li>Chuẩn hóa quy trình tiêm chủng an toàn để tạo sự yên tâm tuyệt đối cho người dân.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="solution-item bg-white rounded-lg shadow-sm overflow-hidden">
+                    <button class="accordion-btn w-full text-left p-4 font-semibold flex justify-between items-center bg-gray-50 hover:bg-gray-100">
+                        <span>Đối với Cơ quan Truyền thông & Báo chí</span>
+                        <span class="accordion-icon text-primary text-xl font-bold">+</span>
+                    </button>
+                    <div class="accordion-content hidden p-4 border-t border-gray-200 text-gray-700">
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Nâng cao trách nhiệm xã hội, kiểm chứng thông tin kỹ lưỡng trước khi đăng tải.</li>
+                            <li>Dành thời lượng/dung lượng phù hợp để tuyên truyền về lợi ích của tiêm chủng.</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="solution-item bg-white rounded-lg shadow-sm overflow-hidden">
+                    <button class="accordion-btn w-full text-left p-4 font-semibold flex justify-between items-center bg-gray-50 hover:bg-gray-100">
+                        <span>Đối với Cộng đồng & Xã hội</span>
+                        <span class="accordion-icon text-primary text-xl font-bold">+</span>
+                    </button>
+                    <div class="accordion-content hidden p-4 border-t border-gray-200 text-gray-700">
+                        <ul class="list-disc list-inside space-y-2">
+                            <li>Phát huy vai trò của nhà trường, các tổ chức xã hội trong việc giáo dục sức khỏe.</li>
+                            <li>Khuyến khích mỗi cá nhân trở thành một "bộ lọc" thông tin thông thái, chia sẻ nguồn tin chính thống.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="font-bold text-lg">Chung tay xây dựng một Việt Nam khỏe mạnh.</p>
+            <p class="text-sm text-gray-400 mt-2">© 2025 - Tiểu luận về Chiến dịch Truyền thông Tiêm chủng.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link, #mobile-menu a');
+            const sections = document.querySelectorAll('section');
+            
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 60) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            function animateValue(obj, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    obj.innerHTML = Math.floor(progress * (end - start) + start);
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    } else {
+                        obj.innerHTML = end;
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            const coverageRate = document.getElementById('coverage-rate');
+            const polioYear = document.getElementById('polio-year');
+            const tetanusYear = document.getElementById('tetanus-year');
+
+            animateValue(coverageRate, 0, 90, 1500);
+            animateValue(polioYear, 1950, 2000, 1500);
+            animateValue(tetanusYear, 1950, 2005, 1500);
+            
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+
+                    tabBtns.forEach(b => {
+                        b.classList.remove('text-primary', 'border-primary');
+                        b.classList.add('text-gray-500');
+                    });
+                    btn.classList.add('text-primary', 'border-primary');
+                    btn.classList.remove('text-gray-500');
+
+                    tabContents.forEach(content => {
+                        if (content.id === tabId) {
+                            content.classList.remove('hidden');
+                        } else {
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+            
+            const accordionBtns = document.querySelectorAll('.accordion-btn');
+            accordionBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const content = btn.nextElementSibling;
+                    const icon = btn.querySelector('.accordion-icon');
+                    content.classList.toggle('hidden');
+                    icon.textContent = content.classList.contains('hidden') ? '+' : '-';
+                });
+            });
+
+            const audienceCtx = document.getElementById('audienceChart').getContext('2d');
+            const audienceChart = new Chart(audienceCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Ủng hộ', 'Do dự', 'Từ chối'],
+                    datasets: [{
+                        label: 'Tỷ lệ các nhóm công chúng (ước tính)',
+                        data: [80, 15, 5],
+                        backgroundColor: [
+                            'rgba(0, 119, 182, 0.7)',
+                            'rgba(255, 193, 7, 0.7)',
+                            'rgba(229, 115, 115, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(0, 119, 182, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(229, 115, 115, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Tỷ lệ (%)' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const herdImmunityCanvas = document.getElementById('herdImmunityCanvas');
+            const runSimulationBtn = document.getElementById('run-simulation-btn');
+            const herdCtx = herdImmunityCanvas.getContext('2d');
+            let animationFrameId;
+
+            function runSimulation() {
+                if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+                const canvas = herdImmunityCanvas;
+                const ctx = herdCtx;
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+
+                const population = [];
+                const total = 100;
+                const vaccinatedRate = 0.9;
+                
+                class Person {
+                    constructor(x, y, status) {
+                        this.x = x;
+                        this.y = y;
+                        this.radius = 4;
+                        this.status = status; // 'healthy', 'vaccinated', 'infected', 'immune'
+                        this.dx = (Math.random() - 0.5) * 2;
+                        this.dy = (Math.random() - 0.5) * 2;
+                        this.infectedTime = 0;
+                    }
+
+                    draw() {
+                        ctx.beginPath();
+                        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                        if (this.status === 'vaccinated') ctx.fillStyle = '#0077B6';
+                        else if (this.status === 'infected') ctx.fillStyle = '#E57373';
+                        else if (this.status === 'immune') ctx.fillStyle = '#90E0EF';
+                        else ctx.fillStyle = '#8D99AE';
+                        ctx.fill();
+                        ctx.closePath();
+                    }
+
+                    update() {
+                        if (this.x + this.radius > canvas.width || this.x - this.radius < 0) this.dx = -this.dx;
+                        if (this.y + this.radius > canvas.height || this.y - this.radius < 0) this.dy = -this.dy;
+                        this.x += this.dx;
+                        this.y += this.dy;
+
+                        if (this.status === 'infected') {
+                            this.infectedTime++;
+                            if (this.infectedTime > 300) this.status = 'immune'; 
+                        }
+                        this.draw();
+                    }
+                }
+
+                for (let i = 0; i < total; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = Math.random() * canvas.height;
+                    const status = Math.random() < vaccinatedRate ? 'vaccinated' : 'healthy';
+                    population.push(new Person(x, y, status));
+                }
+                
+                const initialInfectedIndex = population.findIndex(p => p.status === 'healthy');
+                if (initialInfectedIndex !== -1) {
+                    population[initialInfectedIndex].status = 'infected';
+                }
+
+                function animate() {
+                    animationFrameId = requestAnimationFrame(animate);
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    for (let i = 0; i < population.length; i++) {
+                        population[i].update();
+
+                        if (population[i].status === 'infected') {
+                            for (let j = 0; j < population.length; j++) {
+                                if (i !== j && population[j].status === 'healthy') {
+                                    const dist = Math.hypot(population[i].x - population[j].x, population[i].y - population[j].y);
+                                    if (dist < (population[i].radius + population[j].radius) * 2) {
+                                        if (Math.random() < 0.1) { // Probability of infection on contact
+                                            population[j].status = 'infected';
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                animate();
+            }
+            runSimulationBtn.addEventListener('click', runSimulation);
+            runSimulation(); 
+        });
+    </script>
+</body>
+</html>
